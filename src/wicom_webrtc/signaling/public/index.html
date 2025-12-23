@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>WebRTC Viewer (Phone as Caller)</title>
+<style>
+ body{margin:0;font-family:sans-serif;background:#111;color:#eee}
+ header{padding:12px;background:#1e1e1e}
+ main{padding:12px}
+ video{width:100%;max-height:80vh;background:black}
+ .row{margin:8px 0}
+ code{background:#222;padding:2px 6px;border-radius:4px}
+ button{padding:8px 12px;margin-right:8px}
+</style>
+</head>
+<body>
+<header>
+  <div>WebRTC Viewer (Phone)</div>
+  <div class="row">Server: <code id="origin"></code></div>
+  <div class="row">Status: <code id="status">idle</code></div>
+</header>
+<main>
+  <div class="row">
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
+  </div>
+  <video id="remote" autoplay playsinline muted></video>
+</main>
+<script>
+(() => {
+  const statusEl = document.getElementById('status');
+  const originEl = document.getElementById('origin');
+  const video = document.getElementById('remote');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  const host = window.location.host;         // e.g., 10.42.0.1:8082
+  const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const wsUrl = `${scheme}://${host}`;
+  originEl.textContent = `${window.location.protocol}//${host}`;
+
+  let pc = null;
+  let ws = null;
+
+  function logStatus(s) { statusEl.textContent = s; console.log(s); }
+
+  function setupPC() {
+    pc = new RTCPeerConnection({
+      iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }]
+    });
+    // Tạo m-line video recvonly để đảm bảo remote có track
+    try { pc.addTransceiver('video', { direction: 'recvonly' }); } catch (e) { console.warn(e); }
+
+    pc.onicecandidate = (e) => {
+      if (e.candidate && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'candidate',
+          candidate: e.candidate.candidate,
+          sdpMid: e.candidate.sdpMid,
+          sdpMLineIndex: e.candidate.sdpMLineIndex
+        }));
+      }
+    };
+    pc.ontrack = async (ev) => {
+      const stream = ev.streams && ev.streams[0] ? ev.streams[0] : new MediaStream([ev.track]);
+      video.srcObject = stream;
+      try { await video.play(); } catch (e) { console.warn('autoplay blocked:', e); }
+    };
+  }
+
+  async function sendOffer() {
+    if (!pc || !ws || ws.readyState !== WebSocket.OPEN) return;
+    try {
+      const offer = await pc.createOffer({ offerToReceiveVideo: true });
+      await pc.setLocalDescription(offer);
+      ws.send(JSON.stringify({ type: 'offer', sdp: offer.sdp }));
+      logStatus('Offer sent, waiting for answer...');
+    } catch (e) {
+      logStatus('Offer failed: ' + e);
+      console.error(e);
+    }
+  }
+
+  async function start() {
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    setupPC();
+    ws = new WebSocket(wsUrl);
+
+    ws.onopen = async () => {
+      logStatus('WS connected → creating offer');
+      await sendOffer();
+    };
+
+    ws.onmessage = async (m) => {
+      try {
+        const txt = typeof m.data === 'string' ? m.data : await m.data.text();
+        const msg = JSON.parse(txt);
+        if (msg.type === 'answer' && msg.sdp) {
+          logStatus('Answer received');
+          await pc.setRemoteDescription({ type: 'answer', sdp: msg.sdp });
+        } else if (msg.type === 'candidate' && msg.candidate) {
+          try {
+            await pc.addIceCandidate({
+              candidate: msg.candidate,
+              sdpMid: msg.sdpMid ?? '0',
+              sdpMLineIndex: msg.sdpMLineIndex ?? 0
+            });
+          } catch (e) {
+            console.warn('addIceCandidate failed', e);
+          }
+        } else if (msg.type === 'ready') {
+          // Có peer mới vào → gửi lại offer để tránh rơi mất offer
+          console.log('Received ready → resend offer');
+          await sendOffer();
+        }
+      } catch (e) {
+        console.warn('WS message parse failed', e);
+        logStatus('WS message parse failed');
+      }
+    };
+
+    ws.onclose = () => logStatus('WS closed');
+    ws.onerror = (e) => logStatus('WS error: ' + (e?.message || 'unknown'));
+  }
+
+  function stop() {
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+
+    if (pc) { pc.close(); pc = null; }
+    if (ws && ws.readyState === WebSocket.OPEN) ws.close();
+    video.srcObject = null;
+    logStatus('Stopped');
+  }
+
+  startBtn.onclick = start;
+  stopBtn.onclick = stop;
+
+  // Auto start
+  start();
+})();
+</script>
+</body>
+</html>

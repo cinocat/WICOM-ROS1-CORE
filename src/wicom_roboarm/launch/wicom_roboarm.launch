@@ -1,0 +1,31 @@
+<launch>
+  <node pkg="wicom_roboarm"
+        type="wicom_roboarm_unified_node.py"
+        name="wicom_roboarm_unified"
+        output="screen"
+        respawn="true"
+        launch-prefix="nice -n 10">
+
+    <!-- Servo params -->
+    <param name="i2c_bus" value="1" />
+    <param name="i2c_address" value="0x40" />
+    <param name="use_mux" value="true" />
+    <param name="mux_address" value="0x70" />
+    <param name="mux_channel" value="2" />
+
+    <!-- Load servo joint config -->
+    <rosparam file="$(find wicom_roboarm)/config/servos.yaml" command="load"/>
+
+    <!-- VL53 sensor params -->
+    <param name="channel_short" value="0" />
+    <param name="channel_long"  value="1" />
+    <param name="vl53_publish_rate_hz" value="15.0" />
+
+    <remap from="joint_states" to="/pca9685_servo/joint_states"/>
+    <remap from="set_angle"   to="/pca9685_servo/set_angle"/>
+    <remap from="enable"      to="/pca9685_servo/enable"/>
+    <remap from="disable"     to="/pca9685_servo/disable"/>
+    <remap from="home"        to="/pca9685_servo/home"/>
+    <remap from="command"     to="/pca9685_servo/command"/>
+  </node>
+</launch>

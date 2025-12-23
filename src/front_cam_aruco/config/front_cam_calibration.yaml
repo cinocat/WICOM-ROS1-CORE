@@ -1,0 +1,27 @@
+# Lưu ý: file này không được driver usb_camera sử dụng trực tiếp (camera_info_url="")
+# nhưng image_proc và các node khác sẽ nhận camera_info từ usb_camera.launch của bạn.
+# Giữ đây làm tham chiếu nếu cần.
+image_width: 320
+image_height: 240
+camera_name: front_cam_usb
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [620.0, 0.0, 320.0,
+         0.0, 620.0, 240.0,
+         0.0, 0.0, 1.0]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.10, 0.01, 0.0, 0.0, 0.0]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1,0,0, 0,1,0, 0,0,1]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [620.0, 0.0, 320.0, 0.0,
+         0.0, 620.0, 240.0, 0.0,
+         0.0, 0.0, 1.0,    0.0]

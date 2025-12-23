@@ -1,0 +1,4 @@
+<launch>
+    <node name="UdpSocket" pkg="wicom_udp" type="UdpServer" output="screen">
+    </node>
+</launch>

@@ -1,0 +1,16 @@
+<launch>
+  <arg name="image_topic" default="/main_camera/image_raw" />
+  <arg name="cmd_topics" default="/mavros/setpoint_velocity/cmd_vel_unstamped,/cmd_vel" />
+  <arg name="out_dir" default="$(env HOME)/datasets/path_following" />
+  <arg name="save_stride" default="1" />
+  <arg name="cmd_timeout" default="0.5" />
+
+  <node pkg="wicom_path_following" type="dataset_logger.py" name="dataset_logger" output="screen">
+    <param name="image_topic" value="$(arg image_topic)"/>
+    <param name="cmd_topics" value="$(arg cmd_topics)"/>
+    <param name="out_dir" value="$(arg out_dir)"/>
+    <param name="save_stride" value="$(arg save_stride)"/>
+    <param name="cmd_timeout" value="$(arg cmd_timeout)"/>
+    <param name="auto_start" value="true"/>
+  </node>
+</launch>

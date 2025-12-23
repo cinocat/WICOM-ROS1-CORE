@@ -1,0 +1,29 @@
+<launch>
+    <arg name="name" default="usb_camera"/>
+    <arg name="device" default="/dev/video1"/>
+    <arg name="fps" default="30"/>
+    <arg name="width" default="320"/>
+    <arg name="height" default="240"/>
+
+    <!-- USB Camera Node YUYV format -->
+    <node name="$(arg name)" pkg="usb_cam" type="usb_cam_node" output="screen">
+        <param name="video_device" value="$(arg device)"/>
+        <param name="image_width" value="$(arg width)"/>
+        <param name="image_height" value="$(arg height)"/>
+        <param name="pixel_format" value="yuyv"/>
+        <param name="camera_frame_id" value="usb_camera_optical_frame"/>
+        <param name="io_method" value="mmap"/>
+        <param name="framerate" value="$(arg fps)"/>
+        <param name="camera_info_url" value=""/>
+
+        <!-- Remap topics -->
+        <remap from="image_raw" to="$(arg name)/image_raw"/>
+        <remap from="camera_info" to="$(arg name)/camera_info"/>
+    </node>
+
+    <!-- Image compression cho web streaming -->
+    <node name="$(arg name)_compress" pkg="image_transport" type="republish" 
+          args="raw in:=$(arg name)/image_raw compressed out:=$(arg name)/image_compressed">
+    </node>
+</launch>
+

@@ -1,0 +1,42 @@
+<launch>
+  <arg name="model_path" default="$(env HOME)/models/model_best.onnx"/>
+  <arg name="image_topic" default="/main_camera/image_raw"/>
+  <arg name="cmd_pub_topic" default="/mavros/setpoint_velocity/cmd_vel_unstamped"/>
+  <arg name="fwd_speed" default="0.1"/>
+  <arg name="max_yaw_rate" default="0.8"/>
+  <arg name="smooth_alpha" default="0.3"/>
+  <arg name="camera_rotate_deg" default="0"/>
+  <arg name="min_edge_density" default="0.02"/>
+  <arg name="publish_rate_hz" default="20.0"/>
+  <arg name="cmd_msg_type" default="auto"/> <!-- auto|twist|stamped -->
+
+  <!-- Altitude hold -->
+  <arg name="hold_altitude" default="true"/>
+  <arg name="alt_mode" default="capture"/>   <!-- capture|fixed -->
+  <arg name="alt_target_z" default="1.0"/>
+  <arg name="kp_z" default="1.0"/>
+  <arg name="kd_z" default="0.6"/>
+  <arg name="max_z_vel" default="0.5"/>
+  <arg name="invert_z_sign" default="false"/>
+
+  <node pkg="wicom_path_following" type="inference_node.py" name="path_following" output="screen">
+    <param name="model_path" value="$(arg model_path)"/>
+    <param name="image_topic" value="$(arg image_topic)"/>
+    <param name="cmd_pub_topic" value="$(arg cmd_pub_topic)"/>
+    <param name="fwd_speed" value="$(arg fwd_speed)"/>
+    <param name="max_yaw_rate" value="$(arg max_yaw_rate)"/>
+    <param name="smooth_alpha" value="$(arg smooth_alpha)"/>
+    <param name="camera_rotate_deg" value="$(arg camera_rotate_deg)"/>
+    <param name="min_edge_density" value="$(arg min_edge_density)"/>
+    <param name="publish_rate_hz" value="$(arg publish_rate_hz)"/>
+    <param name="cmd_msg_type" value="$(arg cmd_msg_type)"/>
+
+    <param name="hold_altitude" value="$(arg hold_altitude)"/>
+    <param name="alt_mode" value="$(arg alt_mode)"/>
+    <param name="alt_target_z" value="$(arg alt_target_z)"/>
+    <param name="kp_z" value="$(arg kp_z)"/>
+    <param name="kd_z" value="$(arg kd_z)"/>
+    <param name="max_z_vel" value="$(arg max_z_vel)"/>
+    <param name="invert_z_sign" value="$(arg invert_z_sign)"/>
+  </node>
+</launch>

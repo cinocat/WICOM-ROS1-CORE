@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Front USB ArUco Monitor</title>
+<script src="https://cdn.jsdelivr.net/npm/roslib/build/roslib.min.js"></script>
+<style>
+ body { font-family: Arial, sans-serif; background:#1e1e1e; color:#eee; }
+ .container { max-width: 900px; margin: 20px auto; }
+ .metrics { display:flex; gap:12px; flex-wrap:wrap; }
+ .metric { background:#2b2b2b; padding:10px 14px; border-radius:6px; min-width:160px; }
+ img { max-width:100%; border:2px solid #444; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Front USB Camera ArUco</h1>
+  <p>MJPEG port 8088 (khác với PiCam port 8080).</p>
+  <img id="stream" src="" alt="Loading stream...">
+
+  <h2>Angles (Marker 0)</h2>
+  <div class="metrics">
+    <div class="metric"><strong>Incidence (°)</strong><div id="incidence">--</div></div>
+    <div class="metric"><strong>Yaw (°)</strong><div id="yaw">--</div></div>
+    <div class="metric"><strong>Pitch (°)</strong><div id="pitch">--</div></div>
+    <div class="metric"><strong>Visible IDs</strong><div id="ids">--</div></div>
+  </div>
+  <h2>Status</h2>
+  <div id="status">Connecting...</div>
+</div>
+<script>
+const host = location.hostname || "192.168.1.100";
+document.getElementById('stream').src =
+  "http://" + host + ":8088/stream?topic=/front_cam/usb_cam/image_aruco";
+
+let ros = new ROSLIB.Ros({ url: "ws://" + host + ":9091" });
+ros.on('connection', ()=>{ document.getElementById('status').innerText="Connected"; });
+ros.on('error', e=>{ document.getElementById('status').innerText="Error: "+e; });
+ros.on('close', ()=>{ document.getElementById('status').innerText="Closed"; });
+
+function subFloat(topic, id){
+  new ROSLIB.Topic({ros,name:topic,messageType:'std_msgs/Float32'}).subscribe(msg=>{
+    document.getElementById(id).innerText = msg.data.toFixed(2);
+  });
+}
+subFloat('/front_cam/calculate_front_angle/angle_of_incidence','incidence');
+subFloat('/front_cam/calculate_front_angle/board_yaw','yaw');
+subFloat('/front_cam/calculate_front_angle/board_pitch','pitch');
+
+new ROSLIB.Topic({ros,name:'/front_cam/front_aruco_detect/markers',messageType:'std_msgs/Int32MultiArray'})
+  .subscribe(msg=>{
+    document.getElementById('ids').innerText = msg.data.length? msg.data.join(',') : '--';
+  });
+</script>
+</body>
+</html>

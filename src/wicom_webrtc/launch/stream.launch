@@ -1,0 +1,25 @@
+<launch>
+  <!-- Avoid 8080 by default to prevent conflict with web_video_server -->
+  <arg name="signaling_url" default="ws://localhost:8082"/>
+  <arg name="signaling_host" default="localhost"/>
+  <arg name="signaling_port" default="8082"/>
+
+  <arg name="image_topic" default="/main_camera/image_raw"/>
+  <arg name="width" default="320"/>
+  <arg name="height" default="240"/>
+  <arg name="fps" default="30"/>
+  <arg name="queue_size" default="1"/>
+
+  <node pkg="wicom_webrtc" type="wicom_webrtc_streamer_node" name="wicom_webrtc_streamer_node" output="screen">
+    <!-- If signaling_url provided, node will prefer it; otherwise it will compose from host+port -->
+    <param name="signaling_url" value="$(arg signaling_url)" />
+    <param name="signaling_host" value="$(arg signaling_host)" />
+    <param name="signaling_port" value="$(arg signaling_port)" />
+
+    <param name="image_topic" value="$(arg image_topic)" />
+    <param name="width" value="$(arg width)" />
+    <param name="height" value="$(arg height)" />
+    <param name="fps" value="$(arg fps)" />
+    <param name="queue_size" value="$(arg queue_size)" />
+  </node>
+</launch>

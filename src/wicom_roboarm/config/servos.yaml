@@ -1,0 +1,41 @@
+# I2C and PCA9685 config
+i2c_bus: 1               # /dev/i2c-1 on Raspberry Pi 4
+i2c_address: 0x40        # change if jumpers A0..A5 set
+pwm_frequency_hz: 50     # MG90S analog servo typical
+oscillator_hz: 25000000  # PCA9685 internal clock (25MHz typical)
+
+# Safety and behavior
+enable_on_start: false          # keep outputs OFF at start; require command to enable
+command_timeout_sec: 1.0        # per-joint inactivity timeout
+timeout_behavior: "hold"        # "hold" | "neutral" | "off"
+shutdown_behavior: "neutral"    # on node shutdown
+
+# Global pulse range (microseconds) safe for MG90S
+pulse_us_min: 600
+pulse_us_max: 2400
+
+# Default neutral angle (deg) used when a joint isn't specified below
+neutral_deg: 30.0
+
+# Per joint angle limits (deg)
+limits_deg:
+  base:         {min: 0.0,   max: 180.0}
+  shoulder:     {min: 10.0,  max: 170.0}
+  elbow:        {min: 0.0,   max: 180.0}
+  wrist_pitch:  {min: 0.0,   max: 180.0}
+  gripper:      {min: 10.0,  max: 170.0}
+
+# Joint/channel mapping (5 servos)
+joint_names: ["base", "shoulder", "elbow", "wrist_pitch", "gripper"]
+channels:    [0,      1,         2,       3,             4]
+
+# New: Per-joint neutral angles (deg). Omit joints to use neutral_deg above.
+neutral_deg_per_joint:
+  base: 90.0
+  shoulder: 30.0
+  elbow: 0.0
+  wrist_pitch: 180.0
+  gripper: 0.0
+
+# Publish rate
+publish_rate_hz: 10.0

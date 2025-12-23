@@ -1,0 +1,10 @@
+providers: ["CUDAExecutionProvider", "CPUExecutionProvider"]
+use_cuda: true
+normalize_mean: [0.0, 0.0, 0.0]
+normalize_std: [1.0, 1.0, 1.0]
+input_width: 160
+input_height: 90
+enable_confidence_stop: true
+confidence_edge_lowpass_alpha: 0.2
+edge_canny_threshold1: 50
+edge_canny_threshold2: 150

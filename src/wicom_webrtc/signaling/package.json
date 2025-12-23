@@ -1,0 +1,14 @@
+{
+  "name": "webrtc-signaling",
+  "version": "1.0.0",
+  "description": "Minimal WebSocket signaling server to relay SDP/ICE between ROS node and Unity (simulation only)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "author": "",
+  "license": "MIT"
+}
